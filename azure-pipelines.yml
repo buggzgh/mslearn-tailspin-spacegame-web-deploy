@@ -4,6 +4,11 @@ trigger:
 variables:
   buildConfiguration: 'Release'
 
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '14.x'
+
 stages:
 - stage: 'Build'
   displayName: 'Build the web application'
