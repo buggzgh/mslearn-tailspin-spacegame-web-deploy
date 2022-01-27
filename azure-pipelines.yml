@@ -21,6 +21,9 @@ stages:
       dotnetSdkVersion: '5.x'
 
     steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '14.x'
     - task: UseDotNet@2
       displayName: 'Use .NET SDK $(dotnetSdkVersion)'
       inputs:
@@ -91,6 +94,31 @@ stages:
           - task: AzureWebApp@1
             displayName: 'Azure App Service Deploy: website'
             inputs:
+              appType: webAppLinux
               azureSubscription: 'Resource Manager - Tailspin - Space Game'
-              appName: '$(WebAppNameDev)'
+              appName: 'tailspin-space-game-web-dev-20355'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+- stage: 'Test'
+  displayName: 'Deploy to the test environment'
+  dependsOn: Dev
+  #condition: eq(variables['Build.Reason'], 'Schedule')
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-20.04'
+    environment: test
+    variables:
+    - group: 'Release'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              appType: webAppLinux
+              azureSubscription: 'Resource Manager - Tailspin - Space Game'
+              appName: 'tailspin-space-game-web-test-20355'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
